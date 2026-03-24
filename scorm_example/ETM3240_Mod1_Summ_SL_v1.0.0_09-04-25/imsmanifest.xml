@@ -1,0 +1,78 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<manifest identifier="ETM3240_Learning_Content_M1_P2" version="1.3" xmlns="http://www.imsglobal.org/xsd/imscp_v1p1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:adlcp="http://www.adlnet.org/xsd/adlcp_v1p3" xmlns:adlseq="http://www.adlnet.org/xsd/adlseq_v1p3" xmlns:adlnav="http://www.adlnet.org/xsd/adlnav_v1p3" xmlns:imsss="http://www.imsglobal.org/xsd/imsss" xsi:schemaLocation="http://www.imsglobal.org/xsd/imscp_v1p1 imscp_v1p1.xsd
+                              http://www.adlnet.org/xsd/adlcp_v1p3 adlcp_v1p3.xsd
+                              http://www.adlnet.org/xsd/adlseq_v1p3 adlseq_v1p3.xsd
+                              http://www.adlnet.org/xsd/adlnav_v1p3 adlnav_v1p3.xsd
+                              http://www.imsglobal.org/xsd/imsss imsss_v1p0.xsd">
+  <metadata>
+    <schema>ADL SCORM</schema>
+    <schemaversion>2004 3rd Edition</schemaversion>
+    <adlcp:location>metadata.xml</adlcp:location>
+  </metadata>
+  <organizations default="ETM_3240_Module_1_–_Distributed_Ledger_Technology_Summary_ORG">
+    <organization identifier="ETM_3240_Module_1_–_Distributed_Ledger_Technology_Summary_ORG" adlseq:objectivesGlobalToSystem="false">
+      <title>ETM 3240 Module 1 – Distributed Ledger Technology Summary</title>
+      <item identifier="ETM3240_Learning_Content_M1_P2_SCO" identifierref="_ETM3240_Learning_Content_M1_P2_RES" isvisible="true">
+        <title>ETM 3240 Module 1 – Distributed Ledger Technology Summary</title>
+      </item>
+      <metadata>
+        <adlcp:location>metadata.xml</adlcp:location>
+      </metadata>
+      <imsss:sequencing>
+        <imsss:controlMode choice="true" flow="true" />
+        <imsss:deliveryControls tracked="true" completionSetByContent="false" objectiveSetByContent="false" />
+      </imsss:sequencing>
+    </organization>
+  </organizations>
+  <resources>
+    <resource identifier="_ETM3240_Learning_Content_M1_P2_RES" type="webcontent" adlcp:scormType="sco" href="index_lms.html">
+      <file href="story_content/thumbnail.jpg" />
+      <file href="mobile/5eL9ePrAKgu_P_49_0_1905_973.png" />
+      <file href="mobile/6dqwMwZnvlq_P_-10_249_1034_716.jpg" />
+      <file href="mobile/5v9J2xHkzDt.png" />
+      <file href="mobile/66BbpEczrUT_P_121_93_1866_952.png" />
+      <file href="mobile/6TSrzkNMjlS.jpg" />
+      <file href="meta.xml" />
+      <file href="mobile/5x8mQajD8eL.png" />
+      <file href="story_content/url.png" />
+      <file href="story_content/6KS3X7OpHkx.png" />
+      <file href="story_content/triggers.js" />
+      <file href="story_content/user.js" />
+      <file href="story_content/external_files/ETM3240_PF_090325.pdf" />
+      <file href="mobile/Shape6UxbrkGrPDz.png" />
+      <file href="mobile/Shape6KeHamPDftn.png" />
+      <file href="mobile/Shape5jXzTrEkii4.png" />
+      <file href="mobile/Shape6pCdSPih1gO.png" />
+      <file href="mobile/Shape6g9mIfWMNhA.png" />
+      <file href="html5/data/css/output.min.css" />
+      <file href="html5/data/js/5udPiQqJmNr.js" />
+      <file href="html5/data/js/5v6jpTgn7LM.js" />
+      <file href="html5/data/js/6AaWKbuKInl.js" />
+      <file href="html5/data/js/6atlPcfqYUZ.js" />
+      <file href="html5/data/js/6d9b6aRMDkM.js" />
+      <file href="html5/data/js/6Lj6bPLtWWk.js" />
+      <file href="html5/data/js/6TXfhu5qspG.js" />
+      <file href="html5/data/js/6WDEF17zm2J.js" />
+      <file href="html5/data/js/data.js" />
+      <file href="html5/data/js/frame.js" />
+      <file href="html5/data/js/paths.js" />
+      <file href="html5/lib/scripts/bootstrapper.min.js" />
+      <file href="html5/lib/scripts/frame.desktop.min.js" />
+      <file href="html5/lib/scripts/frame.mobile.min.js" />
+      <file href="html5/lib/scripts/slides.min.js" />
+      <file href="html5/lib/stylesheets/desktop.min.css" />
+      <file href="html5/lib/stylesheets/mobile.min.css" />
+      <file href="html5/lib/stylesheets/mobile-fonts/open-sans-bold.woff" />
+      <file href="html5/lib/stylesheets/mobile-fonts/open-sans-light.woff" />
+      <file href="html5/lib/stylesheets/mobile-fonts/open-sans-regular.woff" />
+      <file href="analytics-frame.html" />
+      <file href="story.html" />
+      <file href="index_lms.html" />
+      <file href="lms/AICCComm.html" />
+      <file href="lms/blank.html" />
+      <file href="lms/browsersniff.js" />
+      <file href="lms/goodbye.html" />
+      <file href="lms/scormdriver.js" />
+    </resource>
+  </resources>
+</manifest>

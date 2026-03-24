@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<course identifier="i15cb8fabf0a35d49512879554f7ba749" xmlns="http://canvas.instructure.com/xsd/cccv1p0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://canvas.instructure.com/xsd/cccv1p0 http://canvas.instructure.com/xsd/cccv1p0.xsd">
+  <title>Test Course 1</title>
+  <course_code>Test 1</course_code>
+  <start_at>2017-02-01T08:00:00</start_at>
+  <conclude_at>2017-04-01T07:25:00</conclude_at>
+  <is_public>true</is_public>
+  <public_syllabus>true</public_syllabus>
+  <public_syllabus_to_auth>false</public_syllabus_to_auth>
+  <allow_student_wiki_edits>false</allow_student_wiki_edits>
+  <allow_student_forum_attachments>false</allow_student_forum_attachments>
+  <lock_all_announcements>false</lock_all_announcements>
+  <default_wiki_editing_roles>teachers</default_wiki_editing_roles>
+  <allow_student_organized_groups>true</allow_student_organized_groups>
+  <default_view>feed</default_view>
+  <license>private</license>
+  <indexed>false</indexed>
+  <hide_final_grade>false</hide_final_grade>
+  <hide_distribution_graphs>false</hide_distribution_graphs>
+  <allow_student_discussion_topics>true</allow_student_discussion_topics>
+  <allow_student_discussion_editing>true</allow_student_discussion_editing>
+  <lock_all_announcements>false</lock_all_announcements>
+  <show_announcements_on_home_page>false</show_announcements_on_home_page>
+  <home_page_announcement_limit>1</home_page_announcement_limit>
+  <enable_offline_web_export>true</enable_offline_web_export>
+  <grading_standard_enabled>false</grading_standard_enabled>
+  <storage_quota>524288000</storage_quota>
+  <root_account_uuid>9gwg5LdV1vHwSjsP7tit99IHOZBtoKEUf1yEuLQn</root_account_uuid>
+</course>

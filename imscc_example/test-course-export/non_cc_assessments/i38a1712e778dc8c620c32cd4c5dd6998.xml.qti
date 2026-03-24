@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<questestinterop xmlns="http://www.imsglobal.org/xsd/ims_qtiasiv1p2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.imsglobal.org/xsd/ims_qtiasiv1p2 http://www.imsglobal.org/xsd/ims_qtiasiv1p2p1.xsd">
+  <objectbank ident="i38a1712e778dc8c620c32cd4c5dd6998">
+    <qtimetadata>
+      <qtimetadatafield>
+        <fieldlabel>bank_title</fieldlabel>
+        <fieldentry>Unfiled Questions</fieldentry>
+      </qtimetadatafield>
+    </qtimetadata>
+    <item ident="ia686e268a4c0356ec490324708ce275a" title="Question">
+      <itemmetadata>
+        <qtimetadata>
+          <qtimetadatafield>
+            <fieldlabel>question_type</fieldlabel>
+            <fieldentry>multiple_choice_question</fieldentry>
+          </qtimetadatafield>
+          <qtimetadatafield>
+            <fieldlabel>points_possible</fieldlabel>
+            <fieldentry>1.0</fieldentry>
+          </qtimetadatafield>
+        </qtimetadata>
+      </itemmetadata>
+      <presentation>
+        <material>
+          <mattext texttype="text/html">&lt;div&gt;Yo?&lt;/div&gt;</mattext>
+        </material>
+        <response_lid ident="response1" rcardinality="Single">
+          <render_choice>
+            <response_label ident="51517">
+              <material>
+                <mattext texttype="text/plain">Si</mattext>
+              </material>
+            </response_label>
+            <response_label ident="91117">
+              <material>
+                <mattext texttype="text/plain">Yes</mattext>
+              </material>
+            </response_label>
+            <response_label ident="54156">
+              <material>
+                <mattext texttype="text/plain">Da</mattext>
+              </material>
+            </response_label>
+            <response_label ident="73509">
+              <material>
+                <mattext texttype="text/plain">Oui</mattext>
+              </material>
+            </response_label>
+          </render_choice>
+        </response_lid>
+      </presentation>
+      <resprocessing>
+        <outcomes>
+          <decvar maxvalue="100" minvalue="0" varname="SCORE" vartype="Decimal"/>
+        </outcomes>
+        <respcondition continue="No">
+          <conditionvar>
+            <varequal respident="response1">51517</varequal>
+          </conditionvar>
+          <setvar action="Set" varname="SCORE">100</setvar>
+        </respcondition>
+      </resprocessing>
+    </item>
+  </objectbank>
+</questestinterop>

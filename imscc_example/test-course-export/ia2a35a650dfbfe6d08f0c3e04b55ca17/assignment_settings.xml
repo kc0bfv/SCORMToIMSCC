@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assignment identifier="ia2a35a650dfbfe6d08f0c3e04b55ca17" xmlns="http://canvas.instructure.com/xsd/cccv1p0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://canvas.instructure.com/xsd/cccv1p0 http://canvas.instructure.com/xsd/cccv1p0.xsd">
+  <title>Assignment 1</title>
+  <due_at>2017-02-09T06:59:59</due_at>
+  <lock_at>2017-04-01T05:59:00</lock_at>
+  <unlock_at>2017-02-06T07:00:00</unlock_at>
+  <module_locked>false</module_locked>
+  <all_day_date>2017-02-09</all_day_date>
+  <peer_reviews_due_at>2017-02-09T06:59:59</peer_reviews_due_at>
+  <assignment_group_identifierref>ia41fe810dcba150ae0542e635365ef4f</assignment_group_identifierref>
+  <workflow_state>published</workflow_state>
+  <assignment_overrides>
+  </assignment_overrides>
+  <has_group_category>false</has_group_category>
+  <points_possible>10.0</points_possible>
+  <grading_type>points</grading_type>
+  <all_day>false</all_day>
+  <submission_types>online_text_entry,online_upload</submission_types>
+  <position>1</position>
+  <turnitin_enabled>false</turnitin_enabled>
+  <vericite_enabled>false</vericite_enabled>
+  <peer_review_count>0</peer_review_count>
+  <peer_reviews>false</peer_reviews>
+  <automatic_peer_reviews>false</automatic_peer_reviews>
+  <moderated_grading>false</moderated_grading>
+  <anonymous_peer_reviews>false</anonymous_peer_reviews>
+  <grade_group_students_individually>false</grade_group_students_individually>
+  <freeze_on_copy>false</freeze_on_copy>
+  <muted>false</muted>
+  <omit_from_final_grade>false</omit_from_final_grade>
+  <intra_group_peer_reviews>false</intra_group_peer_reviews>
+  <only_visible_to_overrides>false</only_visible_to_overrides>
+</assignment>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<topicMeta identifier="i7fac0f312ee5882a99ff375113f6906a" xmlns="http://canvas.instructure.com/xsd/cccv1p0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://canvas.instructure.com/xsd/cccv1p0 http://canvas.instructure.com/xsd/cccv1p0.xsd">
+  <topic_id>ibbb015ec7bc96eade4c64ae68cb21494</topic_id>
+  <title>Discussion 2</title>
+  <position/>
+  <type>topic</type>
+  <discussion_type>side_comment</discussion_type>
+  <has_group_category>false</has_group_category>
+  <workflow_state>active</workflow_state>
+  <module_locked>false</module_locked>
+  <allow_rating>false</allow_rating>
+  <only_graders_can_rate>false</only_graders_can_rate>
+  <sort_by_rating>false</sort_by_rating>
+  <assignment identifier="i458d67cb62b4faf891cc85f9544be3e5">
+    <title>Discussion 2</title>
+    <module_locked>false</module_locked>
+    <assignment_group_identifierref>ia41fe810dcba150ae0542e635365ef4f</assignment_group_identifierref>
+    <workflow_state>published</workflow_state>
+    <assignment_overrides>
+    </assignment_overrides>
+    <has_group_category>false</has_group_category>
+    <grading_type>percent</grading_type>
+    <all_day>false</all_day>
+    <submission_types>discussion_topic</submission_types>
+    <position>5</position>
+    <turnitin_enabled>false</turnitin_enabled>
+    <vericite_enabled>false</vericite_enabled>
+    <peer_review_count>0</peer_review_count>
+    <peer_reviews>false</peer_reviews>
+    <automatic_peer_reviews>false</automatic_peer_reviews>
+    <moderated_grading>false</moderated_grading>
+    <anonymous_peer_reviews>false</anonymous_peer_reviews>
+    <grade_group_students_individually>false</grade_group_students_individually>
+    <freeze_on_copy>false</freeze_on_copy>
+    <muted>false</muted>
+    <omit_from_final_grade>false</omit_from_final_grade>
+    <intra_group_peer_reviews>false</intra_group_peer_reviews>
+    <only_visible_to_overrides>false</only_visible_to_overrides>
+  </assignment>
+</topicMeta>
