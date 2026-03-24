@@ -192,7 +192,7 @@ async function handleFileChange(event: Event) {
 <template>
   <h1>Articulate Storyline SCORM to IMSCC Converter</h1>
   <div>
-      <p><a href="">Source Code</a></p>
+      <p><a href="https://github.com/kc0bfv/SCORMToIMSCC">Source Code</a></p>
       <p>All content remains within your browser - all conversion happens in your browser's JavaScript.</p>
   </div>
   <div>
