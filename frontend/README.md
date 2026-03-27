@@ -1,8 +1,18 @@
-# vue-project
+# Frontend for Articulate SCORM To Coursera IMSCC
 
-This template should help get you started developing with Vue 3 in Vite.
+This is the frontend.  It can compile down into one single `index.html` file for distribution.
 
-## Project Setup
+## Full Build
+
+This will do project setup, type-check, compile, minify, and squash everything into one `dist/index.html` file.
+
+```sh
+./build.sh
+```
+
+## Dev Work
+
+### Project Setup
 
 ```sh
 npm install
@@ -20,8 +30,3 @@ npm run dev
 npm run build
 ```
 
-## Build
-
-```sh
-./build.sh
-```

@@ -1,5 +1,6 @@
 #!/bin/bash
 
+npm install
 npm run build
 
 INDEXJSARR=(dist/assets/index-*.js)
