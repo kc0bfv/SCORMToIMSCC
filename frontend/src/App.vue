@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import './lib/jszip.min.js';
+import * as JSZip from './lib/jszip.min.js';
 import { generateIMSCCManifest, createSimpleCourseConfig, downloadManifest } from './lib/imscc-generator-vite';
 
 import type { IMSCCResource, IMSCCItem } from './lib/imscc-generator-vite';
@@ -25,7 +25,6 @@ interface SlideImageFile {
     data: Uint8Array;      // raw binary content
 }
 type JSONTree = any;
-declare const JSZip : any;
 declare global {
     // Note the capital "W"
     interface Window {
@@ -208,18 +207,21 @@ function getKnownSlides(frame_data: JSONTree) : Record<string, KnownSlide> | und
  * 5. Builds the IMSCC manifest + HTML files + images and triggers download
  */
 async function handleFileChange(event: Event) {
+  // Clear the one_file_error display
+  one_file_error.value = false;
+
   if ( ! event.target ) { console.error("Invalid event target."); return; }
 
-  const files = (event.target as HTMLInputElement).files;
-  if ( ! files ) { console.error("Invalid event target files."); return; }
+  const input_file = (event.target as HTMLInputElement).files?.[0];
+  if ( !input_file ) { one_file_error.value = true; return; }
 
-  if ( files.length != 1 ) { one_file_error.value = true; return; }
-  else { one_file_error.value = false; }
-
-  const zip_input = await JSZip.loadAsync(files[0]);
+  const zip_input = await JSZip.loadAsync(input_file);
+  if ( !zip_input ) { console.error("Failed to load SCORM zip."); return; }
 
   // --- Step 1: Extract module metadata (title, author) from meta.xml ---
-  const meta_xml = await zip_input.file("meta.xml").async("string");
+  const meta_xml = await zip_input.file("meta.xml")?.async("string");
+  if ( !meta_xml ) { console.error("Failed to load meta.xml."); return; }
+
   const module_data = getModuleData(meta_xml);
   if ( ! module_data ) {
     console.error("Failure to retrieve module data.");
@@ -230,7 +232,8 @@ async function handleFileChange(event: Event) {
   const author = module_data[1];
 
   // --- Step 2: Parse frame.js for navigation outline + slide notes ---
-  const frame_file_content = await zip_input.file("html5/data/js/frame.js").async("string");
+  const frame_file_content = await zip_input.file("html5/data/js/frame.js")?.async("string");
+  if ( !frame_file_content ) { console.error("Failed to load frame.js."); return; }
 
   // Articulate's JS files call globalProvideData() to register data by name.
   // We intercept that call and stash the data for later parsing.
