@@ -57,6 +57,8 @@ function isValidImageAsset(asset: SCORMAsset | undefined): asset is SCORMAsset {
     if ( !IMAGE_EXTENSION_REGEX.test(normalized_url) ) { return false; }
     const base_name = normalized_url.split("/").pop() ?? "";
     if ( base_name.startsWith("shape") ) { return false; }
+    // Filter out Articulate's text-rendering artifacts (e.g. "txt__default_5k4Hror0RqN.png")
+    if ( base_name.startsWith("txt_") ) { return false; }
     const width = typeof asset.width === "number" ? asset.width : Number(asset.width);
     const height = typeof asset.height === "number" ? asset.height : Number(asset.height);
     if ( Number.isFinite(width) && width <= 100 ) { return false; }
@@ -353,6 +355,45 @@ async function handleFileChange(event: Event) {
           slideImageFilesMap[normalizedSlideId] = [];
         }
         slideImageFilesMap[normalizedSlideId].push(cached);
+      }
+    }
+
+    // --- Step 5b: Filter out shared template/chrome images ---
+    // Images that appear on more than half the slides are almost certainly
+    // shared UI elements (logos, backgrounds, nav graphics), not slide-specific
+    // content. Count how many slides reference each asset and remove the
+    // ubiquitous ones.
+    const totalSlideCount = Object.keys(slideImageFilesMap).length;
+    if ( totalSlideCount > 1 ) {
+      const assetSlideCount = new Map<number, number>();
+      for ( const images of Object.values(slideImageFilesMap) ) {
+        const seen = new Set<number>();
+        for ( const img of images ) {
+          if ( !seen.has(img.assetId) ) {
+            seen.add(img.assetId);
+            assetSlideCount.set(img.assetId, (assetSlideCount.get(img.assetId) ?? 0) + 1);
+          }
+        }
+      }
+      const threshold = totalSlideCount / 2;
+      const chromeAssetIds = new Set<number>();
+      for ( const [assetId, count] of assetSlideCount ) {
+        if ( count > threshold ) {
+          chromeAssetIds.add(assetId);
+        }
+      }
+      if ( chromeAssetIds.size > 0 ) {
+        console.log(`Filtering out ${chromeAssetIds.size} shared template image(s) that appear on >${Math.round(threshold)} of ${totalSlideCount} slides`);
+        for ( const slideId of Object.keys(slideImageFilesMap) ) {
+          slideImageFilesMap[slideId] = (slideImageFilesMap[slideId] ?? []).filter(
+            (img) => !chromeAssetIds.has(img.assetId)
+          );
+        }
+        // Also remove filtered images from the binary cache so they don't
+        // end up in the output zip
+        for ( const assetId of chromeAssetIds ) {
+          assetBinaryCache.delete(assetId);
+        }
       }
     }
 
