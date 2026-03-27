@@ -126,6 +126,7 @@ function extractAssetCandidates(assetLib: JSONTree): SCORMAsset[] {
 // ============================================================================
 
 const one_file_error = ref(false);
+const filter_shared_images = ref(true);
 
 /** Extracts the project title and author name from the SCORM meta.xml file. */
 function getModuleData(meta_xml: string) : [ string, string ] {
@@ -362,9 +363,9 @@ async function handleFileChange(event: Event) {
     // Images that appear on more than half the slides are almost certainly
     // shared UI elements (logos, backgrounds, nav graphics), not slide-specific
     // content. Count how many slides reference each asset and remove the
-    // ubiquitous ones.
+    // ubiquitous ones. This filter can be disabled via checkbox in the UI.
     const totalSlideCount = Object.keys(slideImageFilesMap).length;
-    if ( totalSlideCount > 1 ) {
+    if ( filter_shared_images.value && totalSlideCount > 1 ) {
       const assetSlideCount = new Map<number, number>();
       for ( const images of Object.values(slideImageFilesMap) ) {
         const seen = new Set<number>();
@@ -500,6 +501,16 @@ async function handleFileChange(event: Event) {
       >
         Select only one file.
       </p>
+  </div>
+  <div>
+      <label for="filter-shared">
+        <input
+          id="filter-shared"
+          type="checkbox"
+          v-model="filter_shared_images"
+        >
+        Filter out shared template images (logos, backgrounds, etc.)
+      </label>
   </div>
 </template>
 
