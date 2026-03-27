@@ -5,6 +5,11 @@ import { generateIMSCCManifest, createSimpleCourseConfig, downloadManifest } fro
 
 import type { IMSCCResource, IMSCCItem } from './lib/imscc-generator-vite';
 
+// ============================================================================
+// Type Definitions
+// ============================================================================
+
+/** Represents an image/media asset entry from SCORM's data.js assetLib array */
 interface SCORMAsset {
     id: number;
     url: string;
@@ -13,10 +18,11 @@ interface SCORMAsset {
     imageType?: string;
 }
 
+/** An extracted image file ready to be included in the IMSCC output zip */
 interface SlideImageFile {
     assetId: number;
-    filename: string;
-    data: Uint8Array;
+    filename: string;      // safe filename used in the output zip (e.g. "3_photo.jpg")
+    data: Uint8Array;      // raw binary content
 }
 type JSONTree = any;
 declare const JSZip : any;
@@ -35,8 +41,16 @@ interface RawResource {
     content: string;
 }
 
+// ============================================================================
+// Image Asset Helper Functions
+// ============================================================================
+
 const IMAGE_EXTENSION_REGEX = /(\.png|\.jpg|\.jpeg|\.gif|\.svg)$/i;
 
+/**
+ * Determines whether a SCORM asset is a meaningful content image worth including.
+ * Filters out: non-image files, tiny UI icons (<=100px), and Shape-prefixed UI elements.
+ */
 function isValidImageAsset(asset: SCORMAsset | undefined): asset is SCORMAsset {
     if ( !asset || typeof asset.url !== "string" ) { return false; }
     const normalized_url = asset.url.toLowerCase();
@@ -50,6 +64,7 @@ function isValidImageAsset(asset: SCORMAsset | undefined): asset is SCORMAsset {
     return true;
 }
 
+/** Generates a unique output filename for an asset, prefixed with its ID to avoid collisions. */
 function getSafeFilename(asset: SCORMAsset): string {
     const base_name_raw = asset.url?.split("/").pop() ?? `asset_${asset.id}`;
     if ( base_name_raw.toLowerCase().startsWith("asset_")) {
@@ -58,12 +73,17 @@ function getSafeFilename(asset: SCORMAsset): string {
     return `${asset.id}_${base_name_raw}`;
 }
 
+/** Appends <img> tags for slide images below the existing notes HTML content. */
 function appendImagesToContent(content: string, imagePaths: string[]): string {
     if ( !imagePaths.length ) { return content; }
     const images_html = imagePaths.map((path) => `<img src="${path}" alt="Slide image" />`).join("\n");
     return `${content}\n<div class="slide-images">\n${images_html}\n</div>`;
 }
 
+/**
+ * Maps a slideRef ID (e.g. "SceneId.SlideId") to the format used in notesData.
+ * Tries the full ID first, then falls back to just the last segment after the dot.
+ */
 function normalizeSlideRefId(refId: string | undefined, known_slides: Record<string, KnownSlide>): string | undefined {
     if ( !refId ) { return undefined; }
     if ( refId in known_slides ) { return refId; }
@@ -73,6 +93,10 @@ function normalizeSlideRefId(refId: string | undefined, known_slides: Record<str
     return last_part || refId;
 }
 
+/**
+ * Given an asset URL, produces a list of candidate file paths to try when
+ * extracting from the SCORM zip. Images may live in story_content/ or mobile/.
+ */
 function createCandidatePaths(url: string): string[] {
     const normalized = url.replace(/^\.\//, "").replace(/^\//, "");
     const candidates = new Set<string>();
@@ -87,6 +111,7 @@ function createCandidatePaths(url: string): string[] {
     return Array.from(candidates).filter((path) => !!path);
 }
 
+/** Safely extracts the asset array from the SCORM data, handling possible structure variations. */
 function extractAssetCandidates(assetLib: JSONTree): SCORMAsset[] {
     if ( Array.isArray(assetLib) ) { return assetLib; }
     if ( assetLib && Array.isArray(assetLib.assets) ) { return assetLib.assets; }
@@ -94,8 +119,13 @@ function extractAssetCandidates(assetLib: JSONTree): SCORMAsset[] {
     return [];
 }
 
+// ============================================================================
+// SCORM Metadata Parsing
+// ============================================================================
+
 const one_file_error = ref(false);
 
+/** Extracts the project title and author name from the SCORM meta.xml file. */
 function getModuleData(meta_xml: string) : [ string, string ] {
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(meta_xml, "text/xml");
@@ -117,6 +147,15 @@ function getModuleData(meta_xml: string) : [ string, string ] {
     return [ title, author_name ];
 }
 
+// ============================================================================
+// Slide Navigation Tree Parsing
+// ============================================================================
+
+/**
+ * Recursively walks the SCORM navigation outline tree to build a map of
+ * slide IDs to their display titles. Only slides in this outline are
+ * considered "known" and included in the IMSCC output.
+ */
 function recursive_GKS(inlink: JSONTree, known_slides: Record<string, KnownSlide>)
     : Record<string, KnownSlide>
 {
@@ -134,6 +173,7 @@ function recursive_GKS(inlink: JSONTree, known_slides: Record<string, KnownSlide
     return known_slides;
 }
 
+/** Parses the frame data's navigation outline into a map of known slide IDs → titles. */
 function getKnownSlides(frame_data: JSONTree) : Record<string, KnownSlide> | undefined {
   var known_slides : Record<string, KnownSlide> = {};
 
@@ -152,6 +192,18 @@ function getKnownSlides(frame_data: JSONTree) : Record<string, KnownSlide> | und
   return known_slides;
 }
 
+// ============================================================================
+// Main Conversion Handler
+// ============================================================================
+
+/**
+ * Main entry point: triggered when the user selects a SCORM zip file.
+ * 1. Reads metadata (title, author) from meta.xml
+ * 2. Parses the navigation outline and slide notes from frame.js
+ * 3. Parses asset/image data from data.js
+ * 4. Extracts image binaries and associates them with slides
+ * 5. Builds the IMSCC manifest + HTML files + images and triggers download
+ */
 async function handleFileChange(event: Event) {
   if ( ! event.target ) { console.error("Invalid event target."); return; }
 
@@ -162,7 +214,8 @@ async function handleFileChange(event: Event) {
   else { one_file_error.value = false; }
 
   const zip_input = await JSZip.loadAsync(files[0]);
-  
+
+  // --- Step 1: Extract module metadata (title, author) from meta.xml ---
   const meta_xml = await zip_input.file("meta.xml").async("string");
   const module_data = getModuleData(meta_xml);
   if ( ! module_data ) {
@@ -173,8 +226,11 @@ async function handleFileChange(event: Event) {
   const module_name = module_data[0];
   const author = module_data[1];
 
+  // --- Step 2: Parse frame.js for navigation outline + slide notes ---
   const frame_file_content = await zip_input.file("html5/data/js/frame.js").async("string");
 
+  // Articulate's JS files call globalProvideData() to register data by name.
+  // We intercept that call and stash the data for later parsing.
   // This is a ridiculous, insecure implementation of what I'm doing, but *shrug*
   window.globalProvideData = (nm: string, dat: string) : undefined => {
     window.globalProvideData[nm] = dat;
@@ -189,6 +245,10 @@ async function handleFileChange(event: Event) {
     return;
   }
 
+  // --- Step 3: Parse data.js for the image asset library and slide→asset mappings ---
+  // data.js contains assetLib (all images/media) and slideMap.slideRefs
+  // (which assets each slide uses). This is optional — text-only conversion
+  // still works if data.js is missing or unparseable.
   let scorm_data: JSONTree | undefined = undefined;
   try {
     const data_file = zip_input.file("html5/data/js/data.js");
@@ -208,6 +268,7 @@ async function handleFileChange(event: Event) {
     console.error("Error parsing SCORM data from data.js", error);
   }
 
+  // --- Step 4: Filter slide notes to only include known (navigable) slides ---
   const resources_raw = frame_data.notesData.map(
     (dat: JSONTree) : RawResource | undefined =>
       {
@@ -226,11 +287,17 @@ async function handleFileChange(event: Event) {
     }
   );
 
+  // --- Step 5: Extract and associate images with slides ---
+  // Build an asset map (assetId → asset metadata), then walk slideRefs to find
+  // which images belong to which slides. Extract the image binaries from the
+  // SCORM zip, cache them to avoid re-reading duplicates, and append <img> tags
+  // to each slide's HTML content.
   const included_slide_ids = new Set(resources_raw.map((resource: RawResource) => resource.slideId));
   const assetBinaryCache = new Map<number, SlideImageFile>();
   const resourceImagePaths: Record<number, string[]> = {};
 
   if ( scorm_data ) {
+    // Build assetId → asset metadata map
     const asset_candidates = extractAssetCandidates(scorm_data.assetLib ?? []);
     const asset_map = new Map<number, SCORMAsset>();
     asset_candidates.forEach((asset_candidate: SCORMAsset) => {
@@ -243,8 +310,10 @@ async function handleFileChange(event: Event) {
       ? scorm_data.slideMap.slideRefs
       : [];
 
+    // slideId → list of extracted image files for that slide
     const slideImageFilesMap: Record<string, SlideImageFile[]> = {};
 
+    /** Tries multiple candidate paths to extract an image binary from the SCORM zip. */
     const loadAssetBinary = async (asset: SCORMAsset): Promise<SlideImageFile | undefined> => {
       const candidate_paths = createCandidatePaths(asset.url);
       for ( const path of candidate_paths ) {
@@ -265,6 +334,7 @@ async function handleFileChange(event: Event) {
       return undefined;
     };
 
+    // Walk each slideRef, resolve its assets, extract binaries, and associate with slides
     for ( const slideRef of slide_refs ) {
       if ( !slideRef || typeof slideRef !== "object" ) { continue; }
       const normalizedSlideId = normalizeSlideRefId(slideRef.id, known_slides);
@@ -286,6 +356,7 @@ async function handleFileChange(event: Event) {
       }
     }
 
+    // Append <img> tags to each slide's HTML and track image paths per resource
     resources_raw.forEach((dat: RawResource, index: number) => {
       const slideImages = slideImageFilesMap[dat.slideId] ?? [];
       const imagePaths = Array.from(new Set(slideImages.map((img) => `images/${img.filename}`)));
@@ -300,6 +371,8 @@ async function handleFileChange(event: Event) {
     });
   }
 
+  // --- Step 6: Build IMSCC resource and item definitions ---
+  // Each resource lists its HTML file plus any associated image files.
   const resources = resources_raw.map( (dat: RawResource, index: number) : IMSCCResource => {
     const additionalFiles = resourceImagePaths[index] ?? [];
     return {
@@ -319,6 +392,7 @@ async function handleFileChange(event: Event) {
     };
   });
 
+  // --- Step 7: Generate the IMSCC manifest XML ---
   const config = createSimpleCourseConfig(
     module_name,
     module_name,
@@ -332,6 +406,8 @@ async function handleFileChange(event: Event) {
   
   //downloadManifest(manifest, `imsmanifest.xml`);
 
+  // --- Step 8: Assemble the output IMSCC zip ---
+  // Includes: imsmanifest.xml, per-slide HTML files, and extracted images.
   const zip = new window.JSZip();
   zip.file("imsmanifest.xml", manifest);
 
@@ -339,10 +415,12 @@ async function handleFileChange(event: Event) {
     zip.file(`resource_${index}.html`, dat.content);
   });
 
+  // Add all extracted images under images/ directory
   assetBinaryCache.forEach((image) => {
     zip.file(`images/${image.filename}`, image.data);
   });
 
+  // --- Step 9: Trigger browser download of the IMSCC file ---
   const blob = await zip.generateAsync({type:"blob"})
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
