@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import * as JSZip from './lib/jszip.min.js';
+import JSZip from 'jszip';
 import { generateIMSCCManifest, createSimpleCourseConfig, downloadManifest } from './lib/imscc-generator-vite';
 
 import type { IMSCCResource, IMSCCItem } from './lib/imscc-generator-vite';
@@ -453,20 +453,20 @@ async function handleFileChange(event: Event) {
 
   // --- Step 8: Assemble the output IMSCC zip ---
   // Includes: imsmanifest.xml, per-slide HTML files, and extracted images.
-  const zip = new window.JSZip();
-  zip.file("imsmanifest.xml", manifest);
+  const outzip = new JSZip();
+  outzip.file("imsmanifest.xml", manifest);
 
   resources_raw.forEach( (dat: RawResource, index: number) => {
-    zip.file(`resource_${index}.html`, dat.content);
+    outzip.file(`resource_${index}.html`, dat.content);
   });
 
   // Add all extracted images under images/ directory
   assetBinaryCache.forEach((image) => {
-    zip.file(`images/${image.filename}`, image.data);
+    outzip.file(`images/${image.filename}`, image.data);
   });
 
   // --- Step 9: Trigger browser download of the IMSCC file ---
-  const blob = await zip.generateAsync({type:"blob"})
+  const blob = await outzip.generateAsync({type:"blob"})
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -496,6 +496,10 @@ async function handleFileChange(event: Event) {
         type="file"
         accept=".zip"
         @change="(event) => { void handleFileChange(event); }"
+        @click ="(event) => {
+          if ( ! event ) { return; }
+          (event.target as HTMLInputElement).value = '';
+        }"
       >
       <p
         id="#onefile"
