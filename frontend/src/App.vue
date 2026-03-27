@@ -515,69 +515,273 @@ async function handleFileChange(event: Event) {
 </script>
 
 <template>
-  <h1>Articulate Storyline SCORM to IMSCC Converter</h1>
-  <div>
-      <p><a href="https://github.com/kc0bfv/SCORMToIMSCC">Source Code</a></p>
-      <p>All content remains within your browser - all conversion happens in your browser's JavaScript.</p>
-  </div>
-  <div>
-      <label for="infile">Select SCORM zip file.</label>
-      <input
-        id="infile"
-        type="file"
-        accept=".zip"
-        @change="(event) => { void handleFileChange(event); }"
-        @click ="(event) => {
-          if ( ! event ) { return; }
-          (event.target as HTMLInputElement).value = '';
-        }"
-      >
-  </div>
-  <div>
-      <label for="filter-shared">
-        <input
-          id="filter-shared"
-          type="checkbox"
-          v-model="filter_shared_images"
-        >
-        Filter out shared template images (logos, backgrounds, etc.)
-      </label>
-  </div>
-  <div v-if="log_messages.length > 0" class="log-area">
-      <p
-        v-for="(entry, index) in log_messages"
-        :key="index"
-        :class="['log-entry', 'log-' + entry.level]"
-      >
-        {{ entry.text }}
-      </p>
+  <div class="app-wrapper">
+    <!-- Header bar -->
+    <header class="app-header">
+      <div class="header-inner">
+        <h1 class="app-title">SCORM to IMSCC Converter</h1>
+        <span class="header-subtitle">Articulate Storyline → Coursera Import</span>
+      </div>
+    </header>
+
+    <!-- Main content -->
+    <main class="app-main">
+      <div class="card">
+        <h2 class="card-heading">Upload SCORM Package</h2>
+        <p class="card-description">
+          Select a SCORM zip file exported from Articulate Storyline.
+          The converter will extract slide content and images into an
+          IMSCC file you can import into Coursera.
+        </p>
+        <p class="card-description card-privacy">
+          All processing happens entirely in your browser &mdash; no data is uploaded to any server.
+        </p>
+
+        <div class="file-input-group">
+          <label for="infile" class="file-label">SCORM Package (.zip)</label>
+          <input
+            id="infile"
+            type="file"
+            accept=".zip"
+            class="file-input"
+            @change="(event) => { void handleFileChange(event); }"
+            @click="(event) => {
+              if ( ! event ) { return; }
+              (event.target as HTMLInputElement).value = '';
+            }"
+          >
+        </div>
+
+        <div class="option-group">
+          <label for="filter-shared" class="option-label">
+            <input
+              id="filter-shared"
+              type="checkbox"
+              v-model="filter_shared_images"
+              class="option-checkbox"
+            >
+            Filter out shared template images (logos, backgrounds, etc.)
+          </label>
+        </div>
+      </div>
+
+      <!-- Log output -->
+      <div v-if="log_messages.length > 0" class="card log-card">
+        <h2 class="card-heading">Conversion Log</h2>
+        <div class="log-area">
+          <p
+            v-for="(entry, index) in log_messages"
+            :key="index"
+            :class="['log-entry', 'log-' + entry.level]"
+          >
+            <span class="log-icon" v-if="entry.level === 'error'">✕</span>
+            <span class="log-icon" v-else-if="entry.level === 'warn'">⚠</span>
+            <span class="log-icon" v-else>✓</span>
+            {{ entry.text }}
+          </p>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <a href="https://github.com/kc0bfv/SCORMToIMSCC" target="_blank" rel="noopener">Source Code on GitHub</a>
+    </footer>
   </div>
 </template>
 
 <style scoped>
-label { padding-right: 10px; }
-.log-area {
-    margin-top: 1em;
-    padding: 0.75em;
-    border: 1px solid #ccc;
+/* ============================================================
+   WarU / DAU-inspired theme
+   Navy (#1b2a4a), Gold (#c5a44e), Clean white content
+   ============================================================ */
+
+/* Reset & base */
+.app-wrapper {
+    font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    color: #1b2a4a;
+    background: #eef1f5;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+}
+
+/* ---------- Header ---------- */
+.app-header {
+    background: #1b2a4a;
+    color: #ffffff;
+    padding: 0;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    border-bottom: 4px solid #c5a44e;
+}
+.header-inner {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+.app-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: 0.02em;
+}
+.header-subtitle {
+    font-size: 0.9rem;
+    color: #c5a44e;
+    font-weight: 400;
+}
+
+/* ---------- Main content ---------- */
+.app-main {
+    max-width: 760px;
+    width: 100%;
+    margin: 2rem auto;
+    padding: 0 1.5rem;
+    flex: 1;
+}
+
+/* ---------- Cards ---------- */
+.card {
+    background: #ffffff;
+    border: 1px solid #d0d5dd;
+    border-radius: 6px;
+    padding: 1.5rem 1.75rem;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.card-heading {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #1b2a4a;
+    margin: 0 0 0.75rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #c5a44e;
+}
+.card-description {
+    font-size: 0.92rem;
+    line-height: 1.55;
+    color: #3d4f6f;
+    margin: 0 0 0.75rem 0;
+}
+.card-privacy {
+    font-style: italic;
+    color: #6b7a94;
+    font-size: 0.85rem;
+}
+
+/* ---------- File input ---------- */
+.file-input-group {
+    margin-top: 1rem;
+}
+.file-label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #1b2a4a;
+    margin-bottom: 0.4rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.file-input {
+    display: block;
+    width: 100%;
+    padding: 0.6rem;
+    border: 2px solid #b0b8c9;
     border-radius: 4px;
-    background: #fafafa;
-    max-height: 300px;
+    background: #f7f8fa;
+    font-size: 0.92rem;
+    cursor: pointer;
+    transition: border-color 0.15s;
+    box-sizing: border-box;
+}
+.file-input:hover {
+    border-color: #c5a44e;
+}
+.file-input:focus {
+    outline: none;
+    border-color: #1b2a4a;
+    box-shadow: 0 0 0 2px rgba(27,42,74,0.15);
+}
+
+/* ---------- Options ---------- */
+.option-group {
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #e8ebf0;
+}
+.option-label {
+    font-size: 0.9rem;
+    color: #3d4f6f;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.option-checkbox {
+    accent-color: #1b2a4a;
+    width: 1.1em;
+    height: 1.1em;
+    cursor: pointer;
+}
+
+/* ---------- Log area ---------- */
+.log-card {
+    background: #fafbfc;
+}
+.log-area {
+    max-height: 280px;
     overflow-y: auto;
+    padding: 0.5rem 0;
 }
 .log-entry {
-    margin: 0.25em 0;
-    font-size: 0.9em;
-    font-family: monospace;
+    margin: 0.3rem 0;
+    padding: 0.35rem 0.5rem;
+    font-size: 0.85rem;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    line-height: 1.5;
+    border-radius: 3px;
+}
+.log-icon {
+    display: inline-block;
+    width: 1.2em;
+    text-align: center;
+    margin-right: 0.3em;
 }
 .log-error {
-    color: #c00;
-    font-weight: bold;
+    color: #9b1c1c;
+    background: #fde8e8;
+    font-weight: 600;
 }
 .log-warn {
-    color: #b60;
+    color: #8e4b10;
+    background: #fef3cd;
 }
 .log-info {
-    color: #060;
+    color: #1a6b3c;
+    background: #e8f5e9;
+}
+
+/* ---------- Footer ---------- */
+.app-footer {
+    text-align: center;
+    padding: 1rem;
+    font-size: 0.8rem;
+    color: #6b7a94;
+    border-top: 1px solid #d0d5dd;
+    background: #f2f4f7;
+}
+.app-footer a {
+    color: #1b2a4a;
+    text-decoration: none;
+    font-weight: 500;
+}
+.app-footer a:hover {
+    color: #c5a44e;
+    text-decoration: underline;
 }
 </style>
