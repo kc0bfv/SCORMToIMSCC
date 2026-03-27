@@ -124,8 +124,31 @@ function extractAssetCandidates(assetLib: JSONTree): SCORMAsset[] {
 // SCORM Metadata Parsing
 // ============================================================================
 
-const one_file_error = ref(false);
 const filter_shared_images = ref(true);
+
+// ============================================================================
+// User-Visible Log Messages
+// ============================================================================
+
+interface LogEntry {
+    level: 'info' | 'warn' | 'error';
+    text: string;
+}
+
+const log_messages = ref<LogEntry[]>([]);
+
+/** Adds a message to the on-page log (and also to the browser console). */
+function logMessage(level: 'info' | 'warn' | 'error', text: string) {
+    log_messages.value.push({ level, text });
+    if ( level === 'error' ) { console.error(text); }
+    else if ( level === 'warn' ) { console.warn(text); }
+    else { console.log(text); }
+}
+
+/** Clears all log messages (called at the start of each conversion). */
+function clearLog() {
+    log_messages.value = [];
+}
 
 /** Extracts the project title and author name from the SCORM meta.xml file. */
 function getModuleData(meta_xml: string) : [ string, string ] {
@@ -133,7 +156,7 @@ function getModuleData(meta_xml: string) : [ string, string ] {
     const xmlDoc = parser.parseFromString(meta_xml, "text/xml");
     const errorNode = xmlDoc.querySelector("parsererror");
     if (errorNode) {
-        console.error("Error parsing XML:", errorNode.textContent);
+        logMessage('error', "Error parsing XML: " + (errorNode.textContent ?? ""));
         return ["Failed Getting Project", "Failed Getting Author"];
     }
 
@@ -170,7 +193,7 @@ function recursive_GKS(inlink: JSONTree, known_slides: Record<string, KnownSlide
             }
         }
     } catch (error) {
-        console.error(`Error in recursive_GKS, continuing: ${error}`);
+        logMessage('warn', `Error in recursive_GKS, continuing: ${error}`);
     }
     return known_slides;
 }
@@ -183,7 +206,7 @@ function getKnownSlides(frame_data: JSONTree) : Record<string, KnownSlide> | und
     && frame_data.navData.outline && frame_data.navData.outline.links
     && Array.isArray(frame_data.navData.outline.links) ) )
   {
-    console.error("Invalid frame_data");
+    logMessage('error', "Invalid frame_data structure — cannot extract slide info.");
     return;
   }
 
@@ -207,24 +230,28 @@ function getKnownSlides(frame_data: JSONTree) : Record<string, KnownSlide> | und
  * 5. Builds the IMSCC manifest + HTML files + images and triggers download
  */
 async function handleFileChange(event: Event) {
-  // Clear the one_file_error display
-  one_file_error.value = false;
+  clearLog();
 
-  if ( ! event.target ) { console.error("Invalid event target."); return; }
+  if ( ! event.target ) { logMessage('error', "Invalid event target."); return; }
 
-  const input_file = (event.target as HTMLInputElement).files?.[0];
-  if ( !input_file ) { one_file_error.value = true; return; }
+  const input_event = (event.target as HTMLInputElement);
+  if ( !input_event.files || input_event.files.length != 1 ) {
+    logMessage('error', "Only select one file."); return;
+  }
+
+  const input_file = input_event.files?.[0];
+  if ( !input_file ) { logMessage('error', "File select error."); return; }
 
   const zip_input = await JSZip.loadAsync(input_file);
-  if ( !zip_input ) { console.error("Failed to load SCORM zip."); return; }
+  if ( !zip_input ) { logMessage('error', "Failed to load SCORM zip."); return; }
 
   // --- Step 1: Extract module metadata (title, author) from meta.xml ---
   const meta_xml = await zip_input.file("meta.xml")?.async("string");
-  if ( !meta_xml ) { console.error("Failed to load meta.xml."); return; }
+  if ( !meta_xml ) { logMessage('error', "Failed to load meta.xml from SCORM package."); return; }
 
   const module_data = getModuleData(meta_xml);
   if ( ! module_data ) {
-    console.error("Failure to retrieve module data.");
+    logMessage('error', "Failed to retrieve module data from meta.xml.");
     return;
   }
 
@@ -233,7 +260,7 @@ async function handleFileChange(event: Event) {
 
   // --- Step 2: Parse frame.js for navigation outline + slide notes ---
   const frame_file_content = await zip_input.file("html5/data/js/frame.js")?.async("string");
-  if ( !frame_file_content ) { console.error("Failed to load frame.js."); return; }
+  if ( !frame_file_content ) { logMessage('error', "Failed to load frame.js from SCORM package."); return; }
 
   // Articulate's JS files call globalProvideData() to register data by name.
   // We intercept that call and stash the data for later parsing.
@@ -247,7 +274,7 @@ async function handleFileChange(event: Event) {
 
   const known_slides = getKnownSlides(frame_data);
   if ( ! known_slides ) {
-    console.error("Failure to retrieve known slides.");
+    logMessage('error', "Failed to extract known slides from navigation outline.");
     return;
   }
 
@@ -265,13 +292,13 @@ async function handleFileChange(event: Event) {
       if ( scorm_data_raw ) {
         scorm_data = JSON.parse(scorm_data_raw);
       } else {
-        console.warn("SCORM data payload missing after evaluating data.js");
+        logMessage('warn', "SCORM data payload missing after evaluating data.js — images will not be included.");
       }
     } else {
-      console.warn("Could not locate html5/data/js/data.js within the SCORM package.");
+      logMessage('warn', "Could not locate data.js in the SCORM package — images will not be included.");
     }
   } catch (error) {
-    console.error("Error parsing SCORM data from data.js", error);
+    logMessage('error', `Error parsing SCORM data from data.js: ${error}`);
   }
 
   // --- Step 4: Filter slide notes to only include known (navigable) slides ---
@@ -333,10 +360,10 @@ async function handleFileChange(event: Event) {
             data,
           };
         } catch (file_error) {
-          console.error(`Failed to read asset at ${path}`, file_error);
+          logMessage('warn', `Failed to read asset at ${path}: ${file_error}`);
         }
       }
-      console.warn(`Unable to locate asset content for url ${asset.url}`);
+      logMessage('warn', `Unable to locate image file for: ${asset.url}`);
       return undefined;
     };
 
@@ -387,7 +414,7 @@ async function handleFileChange(event: Event) {
         }
       }
       if ( chromeAssetIds.size > 0 ) {
-        console.log(`Filtering out ${chromeAssetIds.size} shared template image(s) that appear on >${Math.round(threshold)} of ${totalSlideCount} slides`);
+        logMessage('info', `Filtering out ${chromeAssetIds.size} shared template image(s) that appear on >${Math.round(threshold)} of ${totalSlideCount} slides.`);
         for ( const slideId of Object.keys(slideImageFilesMap) ) {
           slideImageFilesMap[slideId] = (slideImageFilesMap[slideId] ?? []).filter(
             (img) => !chromeAssetIds.has(img.assetId)
@@ -466,6 +493,10 @@ async function handleFileChange(event: Event) {
   });
 
   // --- Step 9: Trigger browser download of the IMSCC file ---
+  const imageCount = assetBinaryCache.size;
+  const slideCount = resources_raw.length;
+  logMessage('info', `Conversion complete: ${slideCount} slide(s), ${imageCount} image(s) included. Downloading CourseFile.imscc...`);
+
   const blob = await outzip.generateAsync({type:"blob"})
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -501,13 +532,6 @@ async function handleFileChange(event: Event) {
           (event.target as HTMLInputElement).value = '';
         }"
       >
-      <p
-        id="#onefile"
-        class="error"
-        :class="{ 'invisible': !one_file_error }"
-      >
-        Select only one file.
-      </p>
   </div>
   <div>
       <label for="filter-shared">
@@ -519,6 +543,41 @@ async function handleFileChange(event: Event) {
         Filter out shared template images (logos, backgrounds, etc.)
       </label>
   </div>
+  <div v-if="log_messages.length > 0" class="log-area">
+      <p
+        v-for="(entry, index) in log_messages"
+        :key="index"
+        :class="['log-entry', 'log-' + entry.level]"
+      >
+        {{ entry.text }}
+      </p>
+  </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+label { padding-right: 10px; }
+.log-area {
+    margin-top: 1em;
+    padding: 0.75em;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: #fafafa;
+    max-height: 300px;
+    overflow-y: auto;
+}
+.log-entry {
+    margin: 0.25em 0;
+    font-size: 0.9em;
+    font-family: monospace;
+}
+.log-error {
+    color: #c00;
+    font-weight: bold;
+}
+.log-warn {
+    color: #b60;
+}
+.log-info {
+    color: #060;
+}
+</style>
