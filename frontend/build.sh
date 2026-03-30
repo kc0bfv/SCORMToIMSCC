@@ -43,5 +43,7 @@ sed '/stylesheet/{
   d
 }' dist/index.html.nostyle > dist/index.html
 
+mkdir -p build_output
+cp dist/index.html build_output/
 
 rm indexcssrep.css indexjsrep.js jszip.js
